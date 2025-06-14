@@ -1,0 +1,5 @@
+.venv
+*.html
+*.md
+.idea
+__pycache__
