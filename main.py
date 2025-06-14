@@ -1,18 +1,32 @@
+import os
+
 from bs4 import BeautifulSoup
 
 
-def get_user_input() -> tuple[str, str, str]:
-    file_path = input("Enter html path: ")
-    print("\n")
-    list_name = input("Enter the name of your list: ")
+def get_user_input() -> tuple[list[str], str]:
+    list_names = input(
+        "(Имена списков будут присваиваться html файлам в алфавитном порядке html файлов!)\nВведите имя списка или имена списка (через пробелы): "
+    )
     print("\n")
     output_type = input("Enter the type of output (mdt, md): ")
-    return file_path, list_name, output_type
+    return list_names.split(), output_type
 
 
 def read_file(path: str) -> str:
     with open(path, "r", encoding="utf-8") as file:
         return file.read()
+
+
+def get_html_paths() -> list[str]:
+    paths = list()
+    for file in os.listdir("./html"):
+        if file.endswith(".html"):
+            paths.append(f"html/{file}")
+
+    if not paths:
+        raise FileNotFoundError("html файлы не найдены!")
+
+    return paths
 
 
 def get_elements(page: str) -> list[tuple[str, str]]:
@@ -51,25 +65,33 @@ def generate_md(anime: list[tuple[str, str]]) -> str:
 
 
 def create_md_file(list_name: str, output: str) -> None:
-    with open(f"{list_name}.md", "w") as file:
+    with open(f"generated/{list_name}.md", "w") as file:
         file.write(output)
 
     print(f"Successfully created {list_name}.md")
 
 
 def main() -> None:
-    file_path, list_name, output_type = get_user_input()
-    page = read_file(file_path)
-    anime = get_elements(page)
-    match output_type.lower():
-        case "mdt":
-            output = generate_md_table(anime)
-        case "md":
-            output = generate_md(anime)
-        case _:
-            raise KeyError("Wrong output type")
+    list_names, output_type = get_user_input()
+    file_paths = get_html_paths()
 
-    create_md_file(list_name, output)
+    if len(list_names) != len(file_paths):
+        raise FileNotFoundError(
+            "Количество названий списков должно совпадать с количеством html файлов!"
+        )
+
+    for i in range(len(list_names)):
+        page = read_file(file_paths[i])
+        anime = get_elements(page)
+        match output_type.lower():
+            case "mdt":
+                output = generate_md_table(anime)
+            case "md":
+                output = generate_md(anime)
+            case _:
+                raise KeyError("Wrong output type")
+
+        create_md_file(list_names[i], output)
 
 
 if __name__ == "__main__":
