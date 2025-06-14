@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from bs4 import BeautifulSoup
 
@@ -8,7 +9,7 @@ def get_user_input() -> tuple[list[str], str]:
         "(Имена списков будут присваиваться html файлам в алфавитном порядке html файлов!)\nВведите имя списка или имена списка (через пробелы): "
     )
     print("\n")
-    output_type = input("Enter the type of output (mdt, md): ")
+    output_type = input("Введите тип вывода (mdt, md): ")
     return list_names.split(), output_type
 
 
@@ -26,7 +27,7 @@ def get_html_paths() -> list[str]:
     if not paths:
         raise FileNotFoundError("html файлы не найдены!")
 
-    return paths
+    return sorted(paths)
 
 
 def get_elements(page: str) -> list[tuple[str, str]]:
@@ -65,10 +66,12 @@ def generate_md(anime: list[tuple[str, str]]) -> str:
 
 
 def create_md_file(list_name: str, output: str) -> None:
+    os.makedirs("generated", exist_ok=True)
+
     with open(f"generated/{list_name}.md", "w") as file:
         file.write(output)
 
-    print(f"Successfully created {list_name}.md")
+    print(f"{list_name}.md успешно создан!")
 
 
 def main() -> None:
@@ -89,7 +92,7 @@ def main() -> None:
             case "md":
                 output = generate_md(anime)
             case _:
-                raise KeyError("Wrong output type")
+                raise KeyError("Неправильный тип вывода")
 
         create_md_file(list_names[i], output)
 
